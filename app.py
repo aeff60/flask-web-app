@@ -35,10 +35,24 @@ def form():
         return f"Hello, {name}!"
     return render_template('form.html', form=form)
 
+@app.route('/submit', methods=['POST'])
+def submit():
+    name = request.form['name']
+    user = User(username=name)
+    db.session.add(user)
+    db.session.commit()
+    return f"User {name} has been added to the database."
+
+# query the database and display the users
 @app.route('/users')
 def users():
     users = User.query.all()
     return render_template('users.html', users=users)
+
+# @app.route('/users')
+# def users():
+#     users = User.query.all()
+#     return render_template('users.html', users=users)
 
 
 if __name__ == '__main__':
