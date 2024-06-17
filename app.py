@@ -10,5 +10,9 @@ def home():
 def about():
     return "This is the about page"
 
+@app.route('/more')
+def about():
+    return "This is the more page"
+
 if __name__ == '__main__':
     app.run(debug=True)
