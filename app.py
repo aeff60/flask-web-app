@@ -49,14 +49,8 @@ def users():
     users = User.query.all()
     return render_template('users.html', users=users)
 
-# @app.route('/users')
-# def users():
-#     users = User.query.all()
-#     return render_template('users.html', users=users)
-
 
 if __name__ == '__main__':
     with app.app_context():
-        # Create the database tables if they don't exist
         db.create_all()
     app.run(debug=True)

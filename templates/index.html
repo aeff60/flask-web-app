@@ -1,8 +1,11 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html>
   <head>
     <title>{{ title }}</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <link
       rel="stylesheet"
       type="text/css"
@@ -10,7 +13,24 @@
     />
   </head>
   <body>
-    <h1>{{ heading }}</h1>
-    <p>{{ content }}</p>
+    <div class="hero-image">
+      <h1>{{ heading }}</h1>
+    </div>
+    <div class="card-container">
+      {% for i in range(3) %}
+      <div class="row">
+        {% for j in range(3) %}
+        <div class="card">
+          <h2>Card Title {{ i * 3 + j + 1 }}</h2>
+          <img
+            src="{{ url_for('static', filename='images/card_image_1.jpg') }}"
+            alt="Card Image {{ i * 3 + j + 1 }}"
+          />
+          <p>Some example text for card {{ i * 3 + j + 1 }}.</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
   </body>
 </html>

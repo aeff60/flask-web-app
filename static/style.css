@@ -1,5 +1,4 @@
-body,
-h1,
+
 p {
   margin: 0;
   padding: 0;
@@ -7,7 +6,7 @@ p {
 
 /* Set background color and font styles */
 body {
-  background-color: #f2f2f2;
+  background-color: #080808;
   font-family: Arial, sans-serif;
 }
 
@@ -15,7 +14,7 @@ body {
 h1 {
   font-size: 24px;
   font-weight: bold;
-  color: #333;
+  color: #fff;
   margin-bottom: 10px;
 }
 
@@ -25,3 +24,80 @@ p {
   color: #666;
   margin-bottom: 20px;
 }
+
+.hero-image {
+  background-image: url('./hero.jpg'); 
+  background-size: cover;  
+  background-position: center;
+
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+}
+
+.hero-image::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 410px;
+  
+  background-color: rgba(0, 0, 0, 0.3);  /* Adjust opacity for darkness */
+  /* Optional gradient for a smoother effect: */
+  /* background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 100%); */
+}
+  /* Add other styles like height, width, etc. */
+
+  /* body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .hero-image {
+    background-color: #f3f3f3;
+    padding: 50px;
+    text-align: center;
+  } */
+  
+  .card-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 50px;
+  }
+  
+  .row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  
+  .card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 30px;
+    width: 300px;
+    text-align: center;
+  }
+  
+  .card h2 {
+    font-size: 1.5em;
+    margin: 10px 0;
+  }
+  
+  .card img {
+    width: 100%;
+    height: auto;
+    border-bottom: 1px solid #ddd;
+    border-radius: 4px 4px 0 0;
+  }
+  
+  .card p {
+    padding: 10px;
+  }
