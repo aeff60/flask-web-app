@@ -13,6 +13,14 @@
       </li>
       {% endfor %}
     </ul>
-    <a href="{{ url_for('upload_file') }}">Upload another file</a>
+    <hr />
+    <h2>Stream Video</h2>
+    <ul>
+      {% for file in files if file.endswith('.mp4') %}
+      <li>
+        <a href="{{ url_for('stream_video', filename=file) }}">{{ file }}</a>
+      </li>
+      {% endfor %}
+    </ul>
   </body>
 </html>

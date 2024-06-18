@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, abort, send_from_directory
+from flask import Flask, request, render_template, redirect, url_for, flash, abort, send_from_directory, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
@@ -69,7 +69,7 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Login')
 
 class UploadForm(FlaskForm):
-    file = FileField('File', validators=[FileRequired(), FileAllowed(['jpg', 'png', 'pdf', 'txt'], 'Files only!')])
+    file = FileField('File', validators=[FileRequired(), FileAllowed(['jpg', 'png', 'pdf', 'txt', 'mp4'], 'Files only!')])
     submit = SubmitField('Upload')
 
 @app.route('/')
@@ -164,9 +164,30 @@ def uploaded_files():
     files = os.listdir(app.config['UPLOAD_FOLDER'])
     return render_template('uploaded_files.html', files=files)
 
+# Video streaming
+def generate_video(filename):
+    with open(filename, 'rb') as video:
+        while True:
+            data = video.read(1024)
+            if not data:
+                break
+            yield data
+
+@app.route('/stream/<filename>')
+@login_required
+def stream_video(filename):
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if not os.path.exists(file_path):
+        abort(404)
+    return Response(generate_video(file_path), mimetype='video/mp4')
+
 @app.errorhandler(403)
 def forbidden(e):
     return render_template('403.html'), 403
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 if __name__ == '__main__':
     # Ensure the database file is removed to recreate it with the updated schema
