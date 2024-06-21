@@ -34,14 +34,36 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
-    role = db.Column(db.String(50), nullable=False, default='user')  # Add a role field
+    role = db.Column(db.String(50), nullable=False, default='user')
 
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.role}')"
-
+    
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+# Course model
+class Course(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    videos = db.relationship('Video', backref='course', lazy=True)
+
+    def __repr__(self):
+        return f"Course('{self.name}')"
+
+# Video model
+class Video(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    filename = db.Column(db.String(100), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+
+    def __repr__(self):
+        return f"Video('{self.title}', '{self.filename}')"
+
+
 
 # Registration form
 class RegistrationForm(FlaskForm):
@@ -72,9 +94,21 @@ class UploadForm(FlaskForm):
     file = FileField('File', validators=[FileRequired(), FileAllowed(['jpg', 'png', 'pdf', 'txt', 'mp4'], 'Files only!')])
     submit = SubmitField('Upload')
 
+class CourseForm(FlaskForm):
+    name = StringField('Course Name', validators=[DataRequired(), Length(min=2, max=150)])
+    description = StringField('Description', validators=[DataRequired(), Length(min=2)])
+    submit = SubmitField('Create Course')
+
+class VideoForm(FlaskForm):
+    title = StringField('Title', validators=[DataRequired(), Length(min=2, max=150)])
+    course_id = StringField('Course ID', validators=[DataRequired()])
+    file = FileField('Video File', validators=[FileRequired(), FileAllowed(['mp4'], 'MP4 files only!')])
+    submit = SubmitField('Upload Video')
+
 @app.route('/')
 def home():
-    return render_template('index.html', title="Home Page", heading="Welcome to My Website", content="This is the home page content.")
+    courses = Course.query.all()
+    return render_template('index.html', title="Home Page", heading="Welcome to My Website", content="This is the home page content.", courses=courses)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -124,7 +158,6 @@ def users():
     users = User.query.all()
     return render_template('users.html', users=users)
 
-# Role-based access control decorator
 def role_required(role):
     def decorator(f):
         @wraps(f)
@@ -141,6 +174,19 @@ def role_required(role):
 def admin():
     return "This is the admin page, accessible only to admins."
 
+@app.route('/create_course', methods=['GET', 'POST'])
+@login_required
+@role_required('admin')
+def create_course():
+    form = CourseForm()
+    if form.validate_on_submit():
+        course = Course(name=form.name.data, description=form.description.data)
+        db.session.add(course)
+        db.session.commit()
+        flash('Course has been created!', 'success')
+        return redirect(url_for('home'))
+    return render_template('create_course.html', title='Create Course', form=form)
+
 @app.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload_file():
@@ -153,6 +199,22 @@ def upload_file():
         return redirect(url_for('uploaded_files'))
     return render_template('upload.html', title='Upload File', form=form)
 
+@app.route('/upload_video', methods=['GET', 'POST'])
+@login_required
+@role_required('admin')
+def upload_video():
+    form = VideoForm()
+    if form.validate_on_submit():
+        file = form.file.data
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        video = Video(title=form.title.data, filename=filename, course_id=form.course_id.data)
+        db.session.add(video)
+        db.session.commit()
+        flash('Video has been uploaded!', 'success')
+        return redirect(url_for('home'))
+    return render_template('upload_video.html', title='Upload Video', form=form)
+
 @app.route('/uploads/<filename>')
 @login_required
 def uploaded_file(filename):
@@ -164,6 +226,20 @@ def uploaded_files():
     files = os.listdir(app.config['UPLOAD_FOLDER'])
     return render_template('uploaded_files.html', files=files)
 
+@app.route('/stream/<filename>')
+@login_required
+def stream_video(filename):
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if not os.path.exists(file_path):
+        abort(404)
+    return Response(generate_video(file_path), mimetype='video/mp4')
+
+@app.route('/course/<int:course_id>')
+@login_required
+def course_detail(course_id):
+    course = Course.query.get_or_404(course_id)
+    return render_template('course_detail.html', title=course.name, course=course)
+
 # Video streaming
 def generate_video(filename):
     with open(filename, 'rb') as video:
@@ -173,14 +249,6 @@ def generate_video(filename):
                 break
             yield data
 
-@app.route('/stream/<filename>')
-@login_required
-def stream_video(filename):
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    if not os.path.exists(file_path):
-        abort(404)
-    return Response(generate_video(file_path), mimetype='video/mp4')
-
 @app.errorhandler(403)
 def forbidden(e):
     return render_template('403.html'), 403
@@ -188,6 +256,11 @@ def forbidden(e):
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
+
+@app.route('/lesson')
+@login_required
+def lesson():
+    return render_template('lesson.html', title='Lesson')
 
 if __name__ == '__main__':
     # Ensure the database file is removed to recreate it with the updated schema

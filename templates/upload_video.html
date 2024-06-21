@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{ title }}</title>
+  </head>
+  <body>
+    <h1>Upload Video</h1>
+    <form method="POST" enctype="multipart/form-data" action="">
+      {{ form.hidden_tag() }}
+      <p>{{ form.title.label }} {{ form.title }}</p>
+      <p>{{ form.course_id.label }} {{ form.course_id }}</p>
+      <p>{{ form.file.label }} {{ form.file }}</p>
+      <p>{{ form.submit }}</p>
+    </form>
+  </body>
+</html>
